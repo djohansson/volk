@@ -34,7 +34,7 @@ VkResult volkInitialize()
 		return VK_ERROR_INITIALIZATION_FAILED;
 
 	vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)GetProcAddress(module, "vkGetInstanceProcAddr");
-#else
+#elif defined(__linux__)
 	void* module = dlopen("libvulkan.so", RTLD_NOW | RTLD_LOCAL);
 	if (!module)
 		module = dlopen("libvulkan.so.1", RTLD_NOW | RTLD_LOCAL);
@@ -42,6 +42,16 @@ VkResult volkInitialize()
 		return VK_ERROR_INITIALIZATION_FAILED;
 
 	vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+#elif defined(__APPLE__)
+    void* module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
+    if (!module)
+        module = dlopen("libvulkan.1.dylib", RTLD_NOW | RTLD_LOCAL);
+    if (!module)
+        return VK_ERROR_INITIALIZATION_FAILED;
+    
+    vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)dlsym(module, "vkGetInstanceProcAddr");
+#else
+    return VK_ERROR_INITIALIZATION_FAILED;
 #endif
 
 	volkGenLoadLoader(NULL, vkGetInstanceProcAddrStub);
